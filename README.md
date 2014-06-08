@@ -1,9 +1,9 @@
 dcalc
 =====
 
-dcalc is a bash script calculator with implicit radix convertion. This script uses the dc calculator as background to do all the math.
+dcalc is a bash script calculator with implicit radix conversion. This script uses the dc calculator as background to do all the math.
 
-Radix Convertion
+Radix Conversion
 ================
 
 Use 0x for hexadecimal, 0y for binary and 0o for octal. Decimal numbers does not need a prefix.
