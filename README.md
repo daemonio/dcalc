@@ -11,13 +11,15 @@ Use 0x for hexadecimal, 0y for binary and 0o for octal. Decimal numbers does not
 Examples
 ========
 
+<pre>
 $ dcalc '(0y111 + 3) * (0xA)'
 100(10) : 100
 100(2)  : 0y1100100
 100(8)  : 0o144
 100(16) : 0x64
+</pre>
 
-remember: 111 = 7(dec) and 0xA = 10(dec)
+remember: 111(bin) = 7(dec) and A(hex) = 10(dec)
 
 Negative numbers are in 2-complement:
 
