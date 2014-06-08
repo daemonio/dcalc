@@ -1,0 +1,197 @@
+#!/bin/bash
+# [dcalc]
+# Calculator with radix convertion
+# by Daemonio
+# http://daemoniolabs.wordpress.com
+#
+# + Version 1.1 @ Sun Jun  8 14:27:46 BRT 2014
+#
+
+# Version
+VERSION='1.1'
+
+# Number of decimal digits
+SCALE=5
+
+# Debug mode if 1
+DEBUG=0
+
+# Show the result directly, without the conversion table
+CLEANFORMAT=0
+
+# radian to degree
+PI180='.0174532925'
+
+# Input to bc, after all radix conversion
+INPUTBC=
+
+# Returned value from bc
+ANSWERBC= 
+
+#
+# Functions
+#
+
+# help
+function show_help {
+echo 'dcalc '$VERSION' - by daemonio'
+echo '[uso] dcalc [-c] <expressao>'
+echo '-c  :  Saida limpa, sem formatacao (base 10).'
+echo 'OBS:'
+echo '    0y = denota numero na base binaria.'
+echo '    0x = denota numero na base hexadecimal.'
+echo '    0o = denota numero na base octal.'
+echo '    sin/cos = recebem parametro em graus.'
+echo '    sqrt() = tira raiz quadrada.'
+
+exit 1
+}
+
+# Debug function
+function debug {
+[ "$DEBUG" = '1' ] && echo "$*"
+}
+
+# radix 10 to N (using bc)
+function base10tobaseN {
+local num=$1
+local base=$2
+local format=
+
+if [ "$base" = 2 ]
+then
+    # 2-complement to negative numbers
+    # the printf command does the trick
+    num=$(printf '%u\n' "$num")
+    echo "obase=2; $num; obase=A" >&4
+    read -u 5; echo $REPLY
+else
+    [ "$base" = 8 ] && format='%o\n'
+    [ "$base" = 16 ] && format='%X\n'
+
+    printf "$format" "$num"
+fi
+}
+
+# Parser function. Convert all the 0xN, 0yN, 0oN to
+# the decimal represintation. Also, does the radian to
+# degree of sin() and cos()
+function parseinput {
+local t=
+local num=
+
+# the '#' character tell us where the modification
+# occurs
+local exp=$(echo "scale=$SCALE; $1" | sed 's/\b0/#&/g')
+
+# change sin() to s() and cos() to c()
+if [[ "$exp" =~ [scz] ]]
+then
+    exp=$(echo "$exp" | sed "s/sin *(/s($PI180 *  /g")
+    exp=$(echo "$exp" | sed "s/cos *(/c($PI180 * /g")
+    exp=$(echo "$exp" | sed "s/z *(/;scale=0;(/g")
+fi
+
+# Nothing to substitute. returns.
+if ! [[ "$exp" =~ '#' ]]
+then
+    echo "$exp"
+    return
+fi
+
+# Main loop that reads until the first '#' and does the
+# radix substitution (ie: 0y100 to 4).
+while [ "$exp" ]
+do
+    if [ "${exp:0:1}" = '#' ]
+    then
+        # t is 'y' for bin, 'x' for hex or 'o' for oct
+        t=${exp:2:1} ;
+
+        # Bin to dec. Here we use $((2#N))
+        if [ "$t" = 'y' ]
+        then
+            num=$(echo "${exp:3}" | sed "s/\(^[0-1]*\).*/\1/")
+            echo $((2#$num))
+            
+        # Hex to dec. Here we use printf
+        elif [ "$t" = 'x' ]
+        then
+            num=$(echo "${exp:3}" | sed 's/\(^[0-9a-fA-F]*\).*/\1/; y/abcdef/ABCDEF/')
+            printf '%u\n' 0x${num}
+        # Oct to dec. Here we use printf
+        elif [ "$t" = 'o' ]
+        then
+            num=$(echo "${exp:3}" | sed 's/\(^[0-8]*\).*/\1/')
+            printf '%u\n' 0${num}
+        # A decimal number
+        else
+            num=$(echo "${exp:1}" | sed 's/\(^[0-9]*\).*/\1/')
+            echo $num
+        fi
+        exp=$(echo "$exp" | sed 's/^[#xyo0-9a-fA-F]*//')
+    fi
+
+    # Removes everything until the first '#'. This makes the
+    # parser continue to until the second '#', and so on.
+    echo "$exp" | sed 's/^\([^#]*\).*/\1/'
+    exp=$(echo "$exp" | sed 's/^.[^#]*//')
+done
+}
+
+# Format table
+function formattable {
+echo -n "$1(10) : "; echo "$1" ;
+echo -n "$1(2)  : 0y"; base10tobaseN $1 2
+echo -n "$1(8)  : 0o"; base10tobaseN $1 8
+echo -n "$1(16) : 0x"; base10tobaseN $1 16
+}
+
+#
+# MAIN
+#
+
+# clean format (does not show the format table)
+[ "$1" = "-c" ] && CLEANFORMAT=1 && shift
+# show help
+[ -z "$1" ] && show_help
+
+# we use bc as a coproc
+# descriptor 4: bc input
+# descriptor 5: bc output
+coproc bc -l
+exec 4>&${COPROC[1]}
+exec 5<&${COPROC[0]}
+
+# Debug: Expression from command line (the original)
+debug "[+] Original Expression: $*"
+
+# Calls parseinput() and get the clean bc input
+INPUTBC=$(parseinput "$*" | tr -d '\n'; echo)
+
+# Debug: shows bc input
+debug "[+] bc input: $INPUTBC"
+
+# send the expression to bc
+echo "$INPUTBC" >&4 ; read -t 5 -u 5 ANSWERBC
+
+# Debug: shows bc output (the result)
+debug "[+] bc output: $ANSWERBC"
+
+# Shows the format table only if -c was not
+# used or if we haven't got a float number as result
+if [[ "$ANSWERBC" =~ \..*[1-9] ]]
+then
+    # float number (do not show the format table)
+    echo "$ANSWERBC"
+elif [ "$CLEANFORMAT" = "0" ]
+then
+    ANSWERBC="$(echo "$ANSWERBC" | sed '/\..*/s///')"
+    formattable "$ANSWERBC"
+else
+    # clean format
+    ANSWERBC="$(echo "$ANSWERBC" | sed '/\..*/s///')"
+    echo "$ANSWERBC"
+fi
+
+#EOF
