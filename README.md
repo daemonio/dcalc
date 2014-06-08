@@ -1,7 +1,7 @@
 dcalc
 =====
 
-dcalc is a bash script calculator with explicit radix conversion. This script uses the dc calculator as background to do all the math.
+dcalc is a bash script calculator with radix conversion. This script uses the dc calculator as background to do all the math.
 
 Radix Conversion
 ================
