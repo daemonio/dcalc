@@ -35,14 +35,16 @@ ANSWERBC=
 # help
 function show_help {
 echo 'dcalc '$VERSION' - by daemonio'
-echo '[uso] dcalc [-c] <expressao>'
-echo '-c  :  Saida limpa, sem formatacao (base 10).'
-echo 'OBS:'
-echo '    0y = denota numero na base binaria.'
-echo '    0x = denota numero na base hexadecimal.'
-echo '    0o = denota numero na base octal.'
-echo '    sin/cos = recebem parametro em graus.'
-echo '    sqrt() = tira raiz quadrada.'
+echo '[uso] dcalc [-c] <expression>'
+echo '-c  :  clean format, no format table.'
+echo 'expression:'
+echo '    0y = binary number (ie: 0y100)'
+echo '    0x = hex number    (ie: 0xAAB)'
+echo '    0o = octal number  (ie: 0o456)'
+echo '    sin(), cos() = sin and cos of a degree angle'
+echo '    sqrt() = square root'
+echo '    l() = natural logarithm'
+echo '    e() = exponential function'
 
 exit 1
 }
