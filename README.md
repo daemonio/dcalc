@@ -31,11 +31,12 @@ $ dcalc '-10'
 -10(16) : 0xFFFFFFFFFFFFFFF6
 </pre>
 
-You can use the following funcions too:
-sin(), cos() for sin and cos of a (degree) angle
-sqrt() for square root
-l() for natural logarithm
-e() for exponential function
+You can use the following math library:
+- sin(x)  The sine of x, x is in degrees.
+- cos(x)  The cosine of x, x is in degrees.
+- l(x)  The natural logarithm of x.
+- e(x)  The exponential function of raising e to the value x.
+- sqrt(x) The square root of x.
 
 <pre>
 $ dcalc '0.5 - sin(0y11110)'
@@ -113,22 +114,3 @@ TODO
 - Do not use printf. This can avoid overflow
 - Create some bc modules and useful functions
 - Read expressions from file or stdin
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
